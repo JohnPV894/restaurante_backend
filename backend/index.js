@@ -1,10 +1,10 @@
 "use strict";
 const app = require('./app');
 
-const port = process.env.PUERTO || 5000;
-app.listen(port, () => {
+const puerto = process.env.PUERTO || 5000;
+app.listen(puerto, () => {
 
-  console.log(`Listening: http://localhost:${port}`);
+  console.log(`Listening: http://localhost:${puerto}`);
   /* eslint-enable no-console */
 });
 
