@@ -3,6 +3,7 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const {MongoClient} = require('mongodb');
+var cors = require('cors');
 
 //Configuracion inicial
 dotenv.config();
@@ -42,6 +43,8 @@ async function validarSesion(usuario,contraseña) {//Redirigir con js window.loc
   }
   let resultadoConsulta =await coleccionSesiones.countDocuments({"usuario":usuario,"clave":contraseña});
   if (resultadoConsulta>0) {
+    console.log(true + "Valido");
+    
     return true;
   }else{
     return false;
@@ -124,9 +127,18 @@ async function obtenerMesas() {
   }
 }
 
-//Peticiones del servidor 
-// Middleware para parsear JSON
+
+
+
+const corsOptions = {
+  origin: '*', // Cambiar por la URL de tu frontend en producción
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  //allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
 app.use(express.json());
+app.use(cors(corsOptions));
+//Peticiones del servidor 
 //GET
 app.get('/', (req, res) => {
   res.json({
@@ -178,6 +190,18 @@ app.post('/api/crear/pedido', async(req, res) => {
       req.body.direccion,//Nombre cll + Num cll + Portal Num + Piso Num + Codigo Postal
       req.body.fechaActual,//Hora a la que se solicito el pedido
       req.body.articulos//Lista de ID's
+    )
+  });
+});
+//Validar sesion y redirigir a el login 
+
+app.post('/api/validarLogin', async(req, res) => {
+  console.log(req.body.usuario," ",req.body.contraseña);
+  res.json({
+    message: await validarSesion(
+      req.body.usuario,
+      req.body.contraseña,
+
     )
   });
 });
