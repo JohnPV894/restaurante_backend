@@ -27,6 +27,7 @@ async function obtenerCliente() {
     bd = await conexionMongo.db(bd_nombre);
     coleccionSesiones = await bd.collection("sesiones");
     coleccionPedidos = await bd.collection("pedidos");
+    coleccionMesas = await bd.collection("mesas");
     //console.log('Conexión exitosa a MongoDB');
   } catch (error) {
     console.error('Error al conectar a MongoDB:', error);
@@ -41,14 +42,25 @@ async function validarSesion(usuario,contraseña) {//Redirigir con js window.loc
     console.error("Los datos no son validos probablente no son string")
     return false;
   }
-  let resultadoConsulta =await coleccionSesiones.countDocuments({"usuario":usuario,"clave":contraseña});
-  if (resultadoConsulta>0) {
-    console.log(true + "Valido");
-    
-    return true;
-  }else{
-    return false;
+  
+  let documentoUsuario = await coleccionSesiones.findOne({"usuario":usuario,"clave":contraseña});
+  return { "logeado":documentoUsuario !== null, "esAdmin":documentoUsuario === null?  false :documentoUsuario["esAdmin"] };
+}
+//Validar o rechazar un pedido
+async function gestionarPedido(id_pedido,estado_pedido) {
+  let respuesta;
+  if (typeof estado_pedido !== "boolean") {
+    console.error("Datos invalidos");
+    return "Operacion cancelada, Datos invalidos";
   }
+  if (estado_pedido === true) {
+    let modificar = await coleccionPedidos.updateOne({ "_id":id_pedido },{ $set:{ "pedido_aprobado":true} });
+    modificar.acknowledged === true? respuesta ="Estado del pedido actualizado": respuesta = "Estado del pedido No actualizado";
+  }else if(estado_pedido === false){
+    let eliminar = await coleccionPedidos.deleteOne({"_id":id_pedido});
+    eliminar.acknowledged === true? respuesta ="pedido eliminado": respuesta = "pedido no eliminado";
+  }
+  return respuesta;
 }
 //Registrar una nueva sesion 
 async function crearSesion(usuario,contraseña,IS_ADMIN) {
@@ -80,7 +92,8 @@ async function crearPedido(nombreUsu,numeroUsu,direccion,fechaActual,articulos) 
       "numero":numeroUsu,
       "direccion":direccion,
       "fecha":fechaActual,
-      "lista_articulos":articulos
+      "lista_articulos":articulos,
+      "pedido_aprobado":"NO DEFINIDO"
     });
     return consultaInsert.acknowledged
   } catch (error) {
@@ -88,6 +101,24 @@ async function crearPedido(nombreUsu,numeroUsu,direccion,fechaActual,articulos) 
     return false
   }
 
+}
+async function crearMesa(numeroComensales) {
+  let capacidad_personas_mesa = parseInt(numeroComensales)
+  if (isNaN(capacidad_personas_mesa)) {
+    console.error("Datos invalidos");
+    return null;
+  };
+  try {
+    let numero_mesas = await coleccionMesas.countDocuments();
+    let consultaInsert = await coleccionMesas.insertOne({
+      "_id":numero_mesas+1,
+      "capacidad_personas":numeroComensales
+    });
+    return consultaInsert.acknowledged
+  } catch (error) {
+    console.error("Fallo al crear usuario: "+error);
+    return false
+  }
 }
 //Recuperar
 //pedidos 
@@ -126,9 +157,6 @@ async function obtenerMesas() {
     throw error;
   }
 }
-
-
-
 
 const corsOptions = {
   origin: '*', // Cambiar por la URL de tu frontend en producción
@@ -179,7 +207,7 @@ app.post('/api/crear/sesion', async(req, res) => {
 });
 app.post('/api/crear/mesa', async(req, res) => {
   res.json({
-    message: await crearSesion(req.params.usuario,req.params.contraseña,req.params.is_admin)
+    message: await crearMesa(req.body.capacidadComensales)
   });
 });
 app.post('/api/crear/pedido', async(req, res) => {
@@ -193,20 +221,19 @@ app.post('/api/crear/pedido', async(req, res) => {
     )
   });
 });
-//Validar sesion y redirigir a el login 
+//Validar sesion y Para luego redirigir a el login 
 
 app.post('/api/validarLogin', async(req, res) => {
-  console.log(req.body.usuario," ",req.body.contraseña);
+
   res.json({
     message: await validarSesion(
-      req.body.usuario,
-      req.body.contraseña,
-
+      req.body.usuario.trim(),
+      req.body.contraseña.trim(),
     )
   });
 });
 
-
+//Gestionar pedido
 
 app.post("/api/recibir", (req, res) => {
     const recibido = req.body; // Aquí llega el objeto enviado desde el frontend
@@ -218,7 +245,7 @@ app.post("/api/recibir", (req, res) => {
 app.get("/api/time", (req, res) => {
 
 
-  res.json(new Date().toLocaleString()+typeof new Date().toLocaleString());
+  res.json(new Date().toLocaleString());
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
