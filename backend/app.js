@@ -248,8 +248,7 @@ app.post("/api/recibir", (req, res) => {
 
 app.get("/api/time", (req, res) => {
 
-
-  res.json(new Date().toLocaleString());
+  res.json(new Date().toLocaleString()+"\n"+mongo_uri+"\n");
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
