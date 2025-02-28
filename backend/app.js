@@ -9,8 +9,8 @@ var cors = require('cors');
 dotenv.config();
 const middlewares = require('./middlewares');
 const app = express();
-const mongo_uri = process.env.MONGO_URI;
-const bd_nombre = process.env.BD_NOMBRE;
+const mongo_uri = "mongodb+srv://santiago894:P5wIGtXue8HvPvli@cluster0.6xkz1.mongodb.net/";
+const bd_nombre = "restaurante";
 const mongo_cliente = new MongoClient(mongo_uri);
 
 // Conexión a MongoDB
