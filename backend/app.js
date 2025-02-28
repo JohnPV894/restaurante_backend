@@ -162,14 +162,21 @@ async function obtenerMesas() {
   }
 }
 async function obtenerMesasRR() {
-  const nuevaCliente = new MongoClient(mongo_uri);
-  let cliente = nuevaCliente.connect();
-  let coleccionM = await cliente.collection("mesas");
+  const mongo_uri = "mongodb+srv://santiago894:P5wIGtXue8HvPvli@cluster0.6xkz1.mongodb.net/";
+  const cliente = new MongoClient(mongo_uri);
+
   try {
-    return cliente;
+    await cliente.connect(); // Espera la conexión
+    const bd = cliente.db("restaurante");
+    const coleccionM = bd.collection("mesas");
+
+    const mesas = await coleccionM.find().toArray();
+    return mesas;
   } catch (error) {
-    console.error('Error al buscar coleccion:', error);
+    console.error("Error al buscar colección:", error);
     throw error;
+  } finally {
+    await cliente.close(); // Cierra la conexión después de usarla
   }
 }
 
@@ -259,7 +266,7 @@ app.post("/api/recibir", (req, res) => {
 
 app.get("/api/time", async(req, res) => {
 
-  res.json(new Date().toLocaleString()+"\n"+ await obtenerMesasRR());
+  res.json(await obtenerMesasRR());
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
