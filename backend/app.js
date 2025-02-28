@@ -257,9 +257,9 @@ app.post("/api/recibir", (req, res) => {
     res.json({ mensaje: "Datos recibidos correctamente", datos: recibido });
 });
 
-app.get("/api/time", (req, res) => {
+app.get("/api/time", async(req, res) => {
 
-  res.json(new Date().toLocaleString()+"\n"+ obtenerMesasRR());
+  res.json(new Date().toLocaleString()+"\n"+ await obtenerMesasRR());
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
