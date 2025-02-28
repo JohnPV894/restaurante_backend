@@ -166,7 +166,7 @@ async function obtenerMesasRR() {
   let cliente = nuevaCliente.connect();
   let coleccionM = await cliente.collection("mesas");
   try {
-    return await coleccionM.find().toArray();
+    return cliente;
   } catch (error) {
     console.error('Error al buscar coleccion:', error);
     throw error;
