@@ -250,6 +250,12 @@ app.get("/api/time", (req, res) => {
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
+// Conectar a MongoDB antes de escuchar las rutas
+obtenerCliente().catch((error) => {
+  console.error('Error al conectar con la base de datos:', error);
+  process.exit(1); // Termina la ejecución si no se puede conectar a MongoDB
+});
+
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
 
