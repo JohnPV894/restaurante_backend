@@ -19,7 +19,7 @@ let bd;
 let coleccionSesiones;
 let coleccionPedidos;
 let coleccionMesas;
-obtenerCliente();
+
 
 // Conectar a MongoDB al inicio
 async function obtenerCliente() {
@@ -35,6 +35,7 @@ async function obtenerCliente() {
     throw error;
   }
 }
+obtenerCliente();
 //Funcionalidades
 //Validar que un usuario y contraseña tienen coincidencia
 async function validarSesion(usuario,contraseña) {//Redirigir con js window.location.assign("nueva url")
@@ -246,7 +247,7 @@ app.post("/api/recibir", (req, res) => {
 app.get("/api/time", (req, res) => {
 
 
-  res.json(new Date().toLocaleString());
+  res.json(new Date().toLocaleString()+"\n"+mongo_uri+"\n"+typeof mongo_uri);
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
