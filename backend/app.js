@@ -19,10 +19,10 @@ let bd;
 let coleccionSesiones;
 let coleccionPedidos;
 let coleccionMesas;
-obtenerCliente().catch((error) => {
-  console.error('Error al conectar con la base de datos:', error);
-  process.exit(1); // Termina la ejecución si no se puede conectar a MongoDB
-});
+obtenerCliente();
+if (conexionMongo==null) {
+  obtenerCliente();
+}
 
 // Conectar a MongoDB al inicio
 async function obtenerCliente() {
@@ -161,6 +161,17 @@ async function obtenerMesas() {
     throw error;
   }
 }
+async function obtenerMesasRR() {
+  const nuevaCliente = new MongoClient(mongo_uri);
+  let cliente = nuevaCliente.connect();
+  let coleccionM = await cliente.collection("mesas");
+  try {
+    return await coleccionM.find().toArray();
+  } catch (error) {
+    console.error('Error al buscar coleccion:', error);
+    throw error;
+  }
+}
 
 const corsOptions = {
   origin: '*', // Cambiar por la URL de tu frontend en producción
@@ -248,7 +259,7 @@ app.post("/api/recibir", (req, res) => {
 
 app.get("/api/time", (req, res) => {
 
-  res.json(new Date().toLocaleString()+"\n"+ conexionMongo);
+  res.json(new Date().toLocaleString()+"\n"+ obtenerMesasRR());
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
