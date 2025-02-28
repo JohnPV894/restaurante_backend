@@ -7,6 +7,7 @@ var cors = require('cors');
 
 //Configuracion inicial
 dotenv.config();
+const middlewares = require('./middlewares');
 const app = express();
 const mongo_uri = process.env.MONGO_URI;
 const bd_nombre = process.env.BD_NOMBRE;
@@ -249,5 +250,7 @@ app.get("/api/time", (req, res) => {
   //res.json({ mensaje:   Date.now().toUTCString() });
 });
 
+app.use(middlewares.notFound);
+app.use(middlewares.errorHandler);
 
 module.exports = app;
