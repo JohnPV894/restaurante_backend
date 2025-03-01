@@ -19,10 +19,6 @@ let bd;
 let coleccionSesiones;
 let coleccionPedidos;
 let coleccionMesas;
-obtenerCliente();
-if (conexionMongo==null) {
-  obtenerCliente();
-}
 
 // Conectar a MongoDB al inicio
 async function obtenerCliente() {
@@ -38,6 +34,19 @@ async function obtenerCliente() {
     throw error;
   }
 }
+
+async function iniciarServidor() {
+  try {
+      await obtenerCliente(); // Espera a que la conexión a MongoDB se complete
+      console.log("Servidor conectado a MongoDB correctamente");
+
+  } catch (error) {
+      console.error("No se pudo conectar a MongoDB. Cerrando la aplicación...", error);
+      process.exit(1); // Cierra la aplicación si la base de datos no está disponible
+  }
+}
+
+iniciarServidor();
 //Funcionalidades
 //Validar que un usuario y contraseña tienen coincidencia
 async function validarSesion(usuario,contraseña) {//Redirigir con js window.location.assign("nueva url")
@@ -222,17 +231,33 @@ app.get('/api/obtener/mesas/libres', async(req, res) => {
 
 //Peticiones para crear y agregar a las colecciones
 app.post('/api/crear/sesion', async(req, res) => {
+  if ( typeof req.body.usuario !== "string" || typeof req.body.contraseña !== "string" || typeof req.body.is_admin !== "boolean") {
+    return res.status(400).json(
+      { message: "Faltan datos validos en la solicitud" }
+    );
+  }
   console.log(req.body);
   res.json({
     message: await crearSesion(req.body.usuario,req.body.contraseña,req.body.is_admin)
   });
 });
 app.post('/api/crear/mesa', async(req, res) => {
+  if ( !req.body.capacidadComensales ) {
+    return res.status(400).json(
+      { message: "Faltan datos validos en la solicitud" }
+    );
+  }
   res.json({
     message: await crearMesa(req.body.capacidadComensales)
   });
 });
 app.post('/api/crear/pedido', async(req, res) => {
+        // Validar que el cuerpo de la petición tiene usuario y contraseña
+  if ( typeof req.body.nombre !== "string" || typeof req.body.numero !== "string" || typeof req.body.direccion !== "string" || typeof req.body.fechaActual !== "string" || typeof req.body.articulos !== "object") {
+    return res.status(400).json(
+      { message: "Faltan datos validos en la solicitud" }
+    );
+  }
   res.json({
     message: await crearPedido(
       req.body.nombre,//Nombres + Apellidos
@@ -245,16 +270,26 @@ app.post('/api/crear/pedido', async(req, res) => {
 });
 //Validar sesion y Para luego redirigir a el login 
 
-app.post('/api/validarLogin', async(req, res) => {
+app.post('/api/validarLogin', async (req, res) => {
+  try {
+      // Validar que el cuerpo de la petición tiene usuario y contraseña
+      if (!req.body.usuario || !req.body.contraseña || typeof req.body.usuario !== "string" || typeof req.body.contraseña !== "string") {
+          return res.status(400).json(
+            { message: "Faltan datos validos en la solicitud" }
+          );
+      }
+      // Llamar a la función validarSesion y esperar su respuesta
+      const resultado = await validarSesion(
+          req.body.usuario.trim(),
+          req.body.contraseña.trim()
+      );
+      res.json({ message: resultado });
 
-  res.json({
-    message: await validarSesion(
-      req.body.usuario.trim(),
-      req.body.contraseña.trim(),
-    )
-  });
+  } catch (error) {
+      console.error("Error en /api/validarLogin:", error);
+      res.status(500).json({ message: "Fallo en el endpoint" });
+  }
 });
-
 //Gestionar pedido
 
 app.post("/api/recibir", (req, res) => {
