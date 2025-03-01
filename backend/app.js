@@ -199,7 +199,7 @@ app.use(express.json());
 app.use(cors(corsOptions));
 //Peticiones del servidor 
 //GET
-app.get('/api/', (req, res) => {
+app.get('/', (req, res) => {
   res.json({
     message: '🦄🌈✨👋🌎🌍🌏✨🌈🦄',
   });
